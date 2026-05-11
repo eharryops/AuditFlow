@@ -1,3 +1,4 @@
+
 # AuditFlow Architecture: Understanding AI Agent Systems
 
 **Purpose:** This document explains how AuditFlow works at a conceptual level. If you understand this, you understand modern multi-agent AI systems.
