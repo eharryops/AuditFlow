@@ -155,17 +155,12 @@ server: { port: 5174 }
 
 ---
 
-## Production Ready?
+## Ready to Deploy?
 
-This stack is **NOT production-ready** yet because:
-- ✅ Architecture is solid
-- ✅ Code is clean and well-documented
-- ❌ No error recovery
-- ❌ No rate limiting
-- ❌ No auth/RBAC
-- ❌ No persistent storage
-
-Phase 6 (AWS deployment) will address these.
+For **production deployment to AWS**, see:
+- `infrastructure/DEPLOYMENT.md` — Step-by-step AWS setup with Lambda, API Gateway, DynamoDB
+- `infrastructure/Makefile` — Automated deployment commands
+- `infrastructure/terraform/` — Modular infrastructure as code
 
 ---
 
