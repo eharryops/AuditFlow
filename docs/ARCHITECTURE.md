@@ -1,13 +1,81 @@
-
 # AuditFlow Architecture: Understanding AI Agent Systems
 
 **Purpose:** This document explains how AuditFlow works at a conceptual level. If you understand this, you understand modern multi-agent AI systems.
 
 ---
 
-## Part 1: The Claude API Fundamentals
+## Part 0: Why This Matters (and What's Actually Happening)
 
-### What is Claude API?
+### What You're Actually Building
+
+**You're not just building a Terraform scanner.**
+
+You're building a **multi-agent AI system** that:
+1. **Parses** infrastructure-as-code
+2. **Identifies** security, cost, performance, and compliance issues
+3. **Generates** fixes
+4. **Learns** from every audit to get better over time
+5. **Scales** to thousands of audits with automatic optimization
+
+This is **state-of-the-art** AI architecture. Companies pay hundreds of thousands of dollars for teams to build what you're creating in a few afternoons.
+
+### How It Works (in 10 seconds)
+
+```
+┌─────────────────────────────────────┐
+│         USER UPLOADS TERRAFORM      │
+└─────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────┐
+│  PARSER LAYER (Static Analysis)     │
+│  - Extracts resources, IAM, secrets │
+│  - Creates JSON representation      │
+└─────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────┐
+│  ORCHESTRATOR (Router)              │
+│  - Maps findings to appropriate     │
+│    specialized agents               │
+└─────────────────────────────────────┘
+                      │
+     ┌──────────────────────────────────┐
+     │                                  │
+     ▼                                  ▼
+┌──────────────┐                 ┌──────────────┐
+│ SECURITY     │                 │ COST         │
+│ AGENT        │                 │ AGENT        │
+└──────────────┘                 └──────────────┘
+     │                                  │
+     └──────────────┬───────────────────┘
+                    │
+                    ▼
+          ┌───────────────────────┐
+          │    VECTOR MEMORY      │
+          │  (Learns from audits)   │
+          └───────────────────────┘
+                    │
+                    ▼
+        ┌─────────────────────────────┐
+        │    REPORT GENERATOR        │
+        │  (Consolidates findings)    │
+        └─────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────┐
+│       USER GETS ACTIONABLE REPORT     │
+│  - 100% accurate                                              ───❯───────────────────────────────────────────────────────────────────                                                                                 
+  ▊ RuFlo V3.6 ● user  │  Haiku 4.5  │  ⏱ 11m57s  │  ● 18% ctx  …  time X", "whenever X", "before/after X") require hooks configured in settings.json…    
+  [INTELLIGENCE] patterns, it's activeStep Id: 29
+The USER performed the following action:
+Command: cd the-drop-app
+CWD: c:\Users\eddie\devops\the-drop-HQ\the-drop-appStep Id: 30
+
+				The command completed successfully.
+				No output
+Step Step Id: 31
+The USER performed the following action: 
 
 Claude API is a **text-in, text-out interface** to a large language model. Think of it like an expert consultant who:
 - Takes any question or problem (input)

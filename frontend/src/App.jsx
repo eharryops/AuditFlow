@@ -1,0 +1,249 @@
+/**
+ * AuditFlow Dashboard
+ *
+ * React app showing:
+ * - File upload (Terraform)
+ * - Real-time audit progress
+ * - Results dashboard with filtering
+ */
+
+import { useState, useRef } from 'react';
+import './App.css';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+function App() {
+  const [terraform, setTerraform] = useState('');
+  const [auditId, setAuditId] = useState(null);
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [filter, setFilter] = useState({ agent: 'all', severity: 'all' });
+  const fileInputRef = useRef(null);
+
+  // Load sample Terraform
+  const loadSample = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/sample`);
+      const data = await res.json();
+      setTerraform(data.terraform);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load sample: ' + err.message);
+    }
+  };
+
+  // Handle file upload
+  const handleFileUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setTerraform(e.target.result);
+      setError(null);
+    };
+    reader.readAsText(file);
+  };
+
+  // Run audit
+  const runAudit = async () => {
+    if (!terraform.trim()) {
+      setError('Please enter Terraform code');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setResults(null);
+
+    try {
+      const res = await fetch(`${API_URL}/api/audit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ terraform }),
+      });
+
+      if (!res.ok) throw new Error('Audit failed');
+
+      const data = await res.json();
+      setAuditId(data.audit_id);
+      setResults(data.results);
+    } catch (err) {
+      setError('Audit error: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter findings
+  const filteredFindings = results
+    ? results.security.findings
+        .concat(results.cost.findings)
+        .concat(results.compliance.findings)
+        .concat(results.performance.findings)
+        .filter((f) => {
+          if (filter.agent !== 'all' && f.agent !== filter.agent) return false;
+          if (filter.severity !== 'all' && f.severity !== filter.severity)
+            return false;
+          return true;
+        })
+    : [];
+
+  return (
+    <div className="app">
+      <header className="header">
+        <h1>🔍 AuditFlow</h1>
+        <p>AI-Powered Infrastructure Auditor</p>
+      </header>
+
+      <main className="container">
+        {/* Input Section */}
+        <section className="input-section">
+          <div className="controls">
+            <button onClick={() => fileInputRef.current?.click()} className="btn-secondary">
+              📁 Upload File
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".tf,.json"
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
+            />
+            <button onClick={loadSample} className="btn-secondary">
+              📋 Load Sample
+            </button>
+            <button
+              onClick={runAudit}
+              disabled={loading || !terraform.trim()}
+              className="btn-primary"
+            >
+              {loading ? '⏳ Auditing...' : '▶ Run Audit'}
+            </button>
+          </div>
+
+          <textarea
+            value={terraform}
+            onChange={(e) => setTerraform(e.target.value)}
+            placeholder="Paste Terraform code here or upload a file..."
+            className="terraform-input"
+          />
+        </section>
+
+        {/* Error Display */}
+        {error && <div className="error-banner">{error}</div>}
+
+        {/* Results Section */}
+        {results && (
+          <section className="results-section">
+            <div className="results-header">
+              <h2>📊 Audit Results</h2>
+              <div className="audit-meta">
+                <span>ID: {auditId?.slice(0, 8)}...</span>
+                <span>Duration: {results.duration_seconds}s</span>
+              </div>
+            </div>
+
+            {/* Summary Cards */}
+            <div className="summary-grid">
+              <div className="card">
+                <div className="card-value">{results.summary.total_findings}</div>
+                <div className="card-label">Total Findings</div>
+              </div>
+              <div className="card critical">
+                <div className="card-value">{results.summary.by_severity.critical}</div>
+                <div className="card-label">CRITICAL</div>
+              </div>
+              <div className="card high">
+                <div className="card-value">{results.summary.by_severity.high}</div>
+                <div className="card-label">HIGH</div>
+              </div>
+              <div className="card medium">
+                <div className="card-value">{results.summary.by_severity.medium}</div>
+                <div className="card-label">MEDIUM</div>
+              </div>
+              <div className="card low">
+                <div className="card-value">{results.summary.by_severity.low}</div>
+                <div className="card-label">LOW</div>
+              </div>
+            </div>
+
+            {/* Agent Results */}
+            <div className="agents-grid">
+              <div className="agent-card">
+                <h3>🔒 Security</h3>
+                <p className="count">{results.security.findings.length} findings</p>
+              </div>
+              <div className="agent-card">
+                <h3>💰 Cost</h3>
+                <p className="count">{results.cost.findings.length} findings</p>
+              </div>
+              <div className="agent-card">
+                <h3>✅ Compliance</h3>
+                <p className="count">{results.compliance.findings.length} findings</p>
+              </div>
+              <div className="agent-card">
+                <h3>⚡ Performance</h3>
+                <p className="count">{results.performance.findings.length} findings</p>
+              </div>
+            </div>
+
+            {/* Filters */}
+            <div className="filters">
+              <select
+                value={filter.severity}
+                onChange={(e) => setFilter({ ...filter, severity: e.target.value })}
+              >
+                <option value="all">All Severities</option>
+                <option value="CRITICAL">CRITICAL</option>
+                <option value="HIGH">HIGH</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="LOW">LOW</option>
+              </select>
+              <select
+                value={filter.agent}
+                onChange={(e) => setFilter({ ...filter, agent: e.target.value })}
+              >
+                <option value="all">All Agents</option>
+                <option value="security">Security</option>
+                <option value="cost">Cost</option>
+                <option value="compliance">Compliance</option>
+                <option value="performance">Performance</option>
+              </select>
+            </div>
+
+            {/* Findings List */}
+            <div className="findings-list">
+              {filteredFindings.length === 0 ? (
+                <p className="no-results">No findings match your filters</p>
+              ) : (
+                filteredFindings.map((finding, idx) => (
+                  <div key={idx} className={`finding-card ${finding.severity.toLowerCase()}`}>
+                    <div className="finding-header">
+                      <span className="badge">{finding.severity}</span>
+                      <h4>{finding.type}</h4>
+                      <span className="agent-badge">{finding.agent}</span>
+                    </div>
+                    <p className="finding-issue">{finding.issue}</p>
+                    {finding.fix && <p className="finding-fix">✓ {finding.fix}</p>}
+                    {finding.recommendation && (
+                      <p className="finding-fix">✓ {finding.recommendation}</p>
+                    )}
+                    {finding.savings && <p className="finding-savings">Savings: {finding.savings}</p>}
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+        )}
+      </main>
+
+      <footer className="footer">
+        <p>AuditFlow - Multi-Agent Infrastructure Auditor | Powered by Claude</p>
+      </footer>
+    </div>
+  );
+}
+
+export default App;

@@ -19,6 +19,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import ClaudeClient from "../backend/shared/claude-client.js";
 import SecurityAgent from "../backend/agents/security-agent.js";
+import TerraformParser from "../backend/shared/parsers/terraform-parser.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
