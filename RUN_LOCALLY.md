@@ -29,6 +29,18 @@ Then open: **http://localhost:5173**
 
 ---
 
+## Testing
+
+Run integration tests:
+```bash
+cd tests
+node test-run.mjs           # Full audit flow
+node test-orchestrator.mjs  # Multi-agent coordination
+node test-memory.mjs        # Memory/caching
+node test-rag-demo.mjs      # RAG in action
+node test-mock.mjs          # Mock agents (no API costs)
+```
+
 ## What You'll See
 
 ### Dashboard Features
