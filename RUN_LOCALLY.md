@@ -137,25 +137,9 @@ server: { port: 5174 }
 
 ---
 
-## Next Steps
-
-1. **Swap Mock → Real Claude**
-   - Set `CLAUDE_API_KEY` env var
-   - Change MockClient → ClaudeClient in backend
-
-2. **Deploy to AWS**
-   - Lambda + API Gateway (backend)
-   - S3 + CloudFront (frontend)
-   - See Phase 6 docs
-
-3. **Add Memory Layer**
-   - Wire up vector embeddings
-   - Connect DynamoDB for persistence
-   - See Phase 4 implementation
-
 ---
 
-## Ready to Deploy?
+## Deploy to Production
 
 For **production deployment to AWS**, see:
 - `infrastructure/DEPLOYMENT.md` — Step-by-step AWS setup with Lambda, API Gateway, DynamoDB
