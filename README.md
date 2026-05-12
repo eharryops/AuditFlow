@@ -11,13 +11,13 @@ Upload your Terraform configuration. AuditFlow spawns 4 parallel AI agents to au
 - **✅ Compliance Agent** — Checks encryption, logging, backup policies
 - **⚡ Performance Agent** — Identifies cold start risks, bottlenecks, scaling issues
 
-Each agent runs in parallel, returns findings, and stores results in a vector database. **Second audits are 90% faster** thanks to pattern memory.
+All 4 agents run in parallel using `Promise.all()` — ~5 seconds instead of 20 seconds sequential.
 
 ## Quick Start
 
 ### Prerequisites
 - Node.js 18+
-- Claude API key
+- No API key needed (uses mock agents by default)
 
 ### Local Development
 
@@ -42,16 +42,10 @@ npm run dev
 
 ### First Audit
 
-```bash
-# Upload a Terraform file
-curl -X POST http://localhost:3000/audit \
-  -H "Content-Type: text/plain" \
-  -d @path/to/main.tf
-
-# Get audit ID from response
-# Poll results
-curl http://localhost:3000/audit/{audit_id}
-```
+Open **http://localhost:5173** and:
+1. Click **Load Sample** to see example vulnerable Terraform
+2. Click **Run Audit** to start the 4-agent orchestration
+3. See findings by severity and agent type
 
 ## Architecture
 
@@ -107,14 +101,11 @@ auditflow/
 │   └── integration/
 
 ├── docs/
-│   ├── ARCHITECTURE.md              # Concepts & design
-│   └── STEP_BY_STEP.md              # Implementation guide
+│   └── ARCHITECTURE.md              # System design & concepts
 
 ├── README.md                         # This file
 ├── RUN_LOCALLY.md                   # Local dev setup
-├── AuditFlow-README.md              # Main project overview
-├── INTERVIEW_TALKING_POINTS.md      # Interview prep (600+ lines)
-└── INDEX.md                         # Navigation guide
+└── netlify.toml                      # Frontend deployment config
 ```
 
 
@@ -122,11 +113,10 @@ auditflow/
 
 - **Backend:** Node.js + Express
 - **Frontend:** React + Vite
-- **AI:** Claude API + Anthropic SDK
-- **Orchestration:** Ruflo (multi-agent swarm)
-- **Memory:** DynamoDB + embeddings
-- **Infrastructure:** AWS Lambda, S3, API Gateway
-- **IaC:** Terraform
+- **AI:** Claude API (mock agents for demo)
+- **Orchestration:** Promise.all() parallelization
+- **Infrastructure:** AWS Lambda, S3, API Gateway, DynamoDB (IaC)
+- **IaC:** Terraform with modular design
 
 ## Learning Outcomes
 
