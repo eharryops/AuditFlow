@@ -59,6 +59,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "frontend" {
   rule {
     id     = "delete-old-versions"
     status = "Enabled"
+    filter {}
 
     noncurrent_version_expiration {
       noncurrent_days = 30
@@ -68,6 +69,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "frontend" {
   rule {
     id     = "delete-incomplete-uploads"
     status = "Enabled"
+    filter {}
 
     abort_incomplete_multipart_upload {
       days_after_initiation = 7
@@ -157,8 +159,8 @@ resource "aws_cloudfront_distribution" "frontend" {
     max_ttl                = 86400     # 1 day
   }
 
-  # Cache behavior for API calls
-  cache_behavior {
+  # Cache behaviors for API calls
+  ordered_cache_behavior {
     path_pattern     = "/api/*"
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods   = ["GET", "HEAD"]
@@ -254,6 +256,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "logs" {
   rule {
     id     = "delete-old-logs"
     status = "Enabled"
+    filter {}
 
     expiration {
       days = 90

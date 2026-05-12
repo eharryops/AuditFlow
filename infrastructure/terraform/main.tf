@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.0"
+    }
   }
 
   backend "s3" {
@@ -87,7 +91,7 @@ module "lambda" {
   ephemeral_storage   = 10240  # 10GB for temp computation
 
   # Code location (will be built and packaged)
-  source_dir = "${path.root}/../backend"
+  source_dir = "${path.root}/../../backend"
   zip_output_path = "${path.root}/.terraform/lambda-build.zip"
 
   # Environment variables
@@ -113,59 +117,23 @@ module "lambda" {
 }
 
 # =====================
-# API Gateway
+# HTTP API Gateway
 # =====================
 
-module "api_gateway" {
-  source = "./modules/api"
+module "http_api" {
+  source = "./modules/http-api"
 
   api_name            = local.api_name
   api_description     = "AuditFlow Terraform Auditor API"
   stage_name          = var.environment
   lambda_function_arn = module.lambda.function_arn
-  lambda_invoke_arn   = module.lambda.invoke_arn
+  lambda_function_name = module.lambda.function_name
 
-  # CORS for frontend
-  cors_allow_origins  = var.cors_allow_origins
-  cors_allow_headers  = ["Content-Type", "Authorization"]
-
-  # Resources/Routes
-  resources = {
-    "audit" = {
-      methods = ["POST"]
-    }
-    "audit/{auditId}" = {
-      methods = ["GET"]
-    }
-    "health" = {
-      methods = ["GET"]
-    }
-  }
+  cors_allow_origins = var.cors_allow_origins
+  log_retention_days = 7
 
   tags = {
     Name = "${local.prefix}-api"
-  }
-}
-
-# =====================
-# S3 for Frontend
-# =====================
-
-module "s3" {
-  source = "./modules/s3"
-
-  bucket_name        = "${local.prefix}-frontend-${data.aws_caller_identity.current.account_id}"
-  environment        = var.environment
-  enable_versioning  = true
-  enable_encryption  = true
-  block_public_acls  = true
-
-  # CloudFront distribution
-  create_cloudfront = true
-  cloudfront_comment = "AuditFlow Frontend Distribution"
-
-  tags = {
-    Name = "${local.prefix}-frontend"
   }
 }
 
@@ -257,14 +225,9 @@ data "aws_region" "current" {}
 # Outputs
 # =====================
 
-output "api_gateway_url" {
-  value = module.api_gateway.api_endpoint
-  description = "API Gateway endpoint URL"
-}
-
-output "cloudfront_domain" {
-  value = module.s3.cloudfront_domain_name
-  description = "CloudFront distribution domain"
+output "api_endpoint" {
+  value = module.http_api.api_endpoint
+  description = "HTTP API endpoint URL"
 }
 
 output "lambda_function_name" {
@@ -275,9 +238,4 @@ output "lambda_function_name" {
 output "dynamodb_table_name" {
   value = module.dynamodb.table_name
   description = "DynamoDB table name"
-}
-
-output "s3_bucket_name" {
-  value = module.s3.bucket_name
-  description = "S3 bucket name for frontend"
 }

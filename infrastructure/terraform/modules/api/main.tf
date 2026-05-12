@@ -225,30 +225,6 @@ resource "aws_api_gateway_stage" "auditor" {
   rest_api_id   = aws_api_gateway_rest_api.auditor.id
   stage_name    = var.stage_name
 
-  cache_cluster_enabled        = true
-  cache_cluster_size           = "0.5"
-  cache_data_encrypted         = true
-  cache_ttl_in_seconds         = 300
-  logging_level                = "INFO"
-  data_trace_enabled           = false
-  metrics_enabled              = true
-  tracing_enabled              = true
-
-  access_log_settings {
-    cloudwatch_log_group_arn = aws_cloudwatch_log_group.api.arn
-    format = jsonencode({
-      requestId      = "$context.requestId"
-      ip             = "$context.identity.sourceIp"
-      requestTime    = "$context.requestTime"
-      httpMethod     = "$context.httpMethod"
-      resourcePath   = "$context.resourcePath"
-      status         = "$context.status"
-      protocol       = "$context.protocol"
-      responseLength = "$context.responseLength"
-      integrationLatency = "$context.integration.latency"
-    })
-  }
-
   tags = var.tags
 }
 

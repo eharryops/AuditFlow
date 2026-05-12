@@ -9,19 +9,8 @@ resource "aws_dynamodb_table" "memory_store" {
   range_key      = "finding_id"
 
   # Provisioned mode (if capacity specified)
-  dynamic "read_capacity_units" {
-    for_each = var.read_capacity > 0 ? [var.read_capacity] : []
-    content {
-      capacity = read_capacity_units.value
-    }
-  }
-
-  dynamic "write_capacity_units" {
-    for_each = var.write_capacity > 0 ? [var.write_capacity] : []
-    content {
-      capacity = write_capacity_units.value
-    }
-  }
+  read_capacity  = var.read_capacity > 0 ? var.read_capacity : null
+  write_capacity = var.write_capacity > 0 ? var.write_capacity : null
 
   # Attributes
   attribute {
@@ -94,9 +83,8 @@ resource "aws_dynamodb_table" "memory_store" {
   )
 
   # Stream specification for event-driven architecture
-  stream_specification {
-    stream_view_type = "NEW_AND_OLD_IMAGES"
-  }
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
 }
 
 # =====================
@@ -168,7 +156,7 @@ resource "aws_appautoscaling_target" "gsi_read" {
   count              = var.read_capacity > 0 ? 1 : 0
   max_capacity       = 40
   min_capacity       = var.read_capacity
-  resource_id        = "table/${aws_dynamodb_table.memory_store.name}/index/${aws_dynamodb_table.memory_store.global_secondary_index[0].name}"
+  resource_id        = "table/${aws_dynamodb_table.memory_store.name}/index/${var.table_name}-agent-index"
   scalable_dimension = "dynamodb:index:ReadCapacityUnits"
   service_namespace  = "dynamodb"
 }

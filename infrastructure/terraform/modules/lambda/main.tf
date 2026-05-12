@@ -1,9 +1,19 @@
 # =====================
+# Lambda Function Code Archive
+# =====================
+
+data "archive_file" "lambda_code" {
+  type        = "zip"
+  source_dir  = var.source_dir
+  output_path = var.zip_output_path
+}
+
+# =====================
 # Lambda Function
 # =====================
 
 resource "aws_lambda_function" "auditor" {
-  filename         = var.zip_output_path
+  filename         = data.archive_file.lambda_code.output_path
   function_name    = var.function_name
   role             = var.execution_role_arn
   handler          = var.handler
@@ -49,7 +59,7 @@ resource "aws_lambda_function" "auditor" {
     }
   )
 
-  source_code_hash = filebase64sha256(var.zip_output_path)
+  source_code_hash = data.archive_file.lambda_code.output_base64sha256
 }
 
 # =====================
@@ -62,7 +72,7 @@ resource "aws_lambda_permission" "api_gateway" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.auditor.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${var.api_source_arn}/*"
+  source_arn    = var.api_source_arn != "*" ? "${var.api_source_arn}/*" : null
 }
 
 # =====================

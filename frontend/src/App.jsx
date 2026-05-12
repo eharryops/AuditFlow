@@ -10,7 +10,7 @@
 import { useState, useRef } from 'react';
 import './App.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || 'https://ybsp0r3fw3.execute-api.us-east-1.amazonaws.com';
 
 const SAMPLE_TERRAFORM = `# Intentionally vulnerable Terraform for auditing demo
 
