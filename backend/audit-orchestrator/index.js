@@ -104,7 +104,7 @@ app.get('/api/sample', (req, res) => {
   try {
     const samplePath = path.join(
       __dirname,
-      '../../auditflow/tests/sample-terraform/vulnerable-config.tf'
+      '../../tests/sample-terraform/vulnerable-config.tf'
     );
     const content = fs.readFileSync(samplePath, 'utf-8');
     res.json({ success: true, terraform: content });
