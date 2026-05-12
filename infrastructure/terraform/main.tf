@@ -11,13 +11,13 @@ terraform {
     }
   }
 
-  backend "s3" {
-    # Configure with: terraform init -backend-config="bucket=..."
-    key            = "auditflow/terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
-    dynamodb_table = "terraform-locks"
-  }
+  # backend "s3" {
+  #   # Configure with: terraform init -backend-config="bucket=..."
+  #   key            = "auditflow/terraform.tfstate"
+  #   region         = "us-east-1"
+  #   encrypt        = true
+  #   dynamodb_table = "terraform-locks"
+  # }
 }
 
 provider "aws" {
@@ -129,7 +129,7 @@ module "http_api" {
   lambda_function_arn = module.lambda.function_arn
   lambda_function_name = module.lambda.function_name
 
-  cors_allow_origins = var.cors_allow_origins
+  cors_allow_origins = concat(var.cors_allow_origins, ["https://infra-auditflow.netlify.app"])
   log_retention_days = 7
 
   tags = {
