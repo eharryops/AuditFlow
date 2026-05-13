@@ -67,6 +67,24 @@ To use real AI analysis on actual Terraform code:
 
 ## Architecture
 
+```mermaid
+graph TD
+    Client[User / Browser] -->|Terraform Code| APIGW[API Gateway]
+    APIGW -->|POST /api/audit| Orchestrator[Lambda: Audit Orchestrator]
+    
+    Orchestrator -->|Prompt| SecAgent[Security Agent]
+    Orchestrator -->|Prompt| CostAgent[Cost Agent]
+    Orchestrator -->|Prompt| CompAgent[Compliance Agent]
+    Orchestrator -->|Prompt| PerfAgent[Performance Agent]
+    
+    SecAgent -->|Queries| Claude[Claude 3.5 API]
+    CostAgent -->|Queries| Claude
+    CompAgent -->|Queries| Claude
+    PerfAgent -->|Queries| Claude
+    
+    Orchestrator -.->|Cache Check| DB[(DynamoDB Memory)]
+```
+
 See `docs/ARCHITECTURE.md` for detailed explanation of:
 - Claude API fundamentals (tokens, prompts, temperature)
 - Multi-agent orchestration patterns

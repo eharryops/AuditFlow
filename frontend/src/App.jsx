@@ -8,6 +8,10 @@
  */
 
 import { useState, useRef } from 'react';
+import Editor from 'react-simple-code-editor';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-hcl';
+import 'prismjs/themes/prism-tomorrow.css';
 import './App.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://7af699g5uc.execute-api.us-east-1.amazonaws.com';
@@ -106,6 +110,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState({ agent: 'all', severity: 'all' });
+  const [copied, setCopied] = useState(false);
   const fileInputRef = useRef(null);
 
   // Load sample Terraform
@@ -157,34 +162,29 @@ function App() {
     }
   };
 
+  // Prepare all findings with consistent agent metadata
+  const allFindings = results ? [
+    ...results.security.findings.map(f => ({ ...f, agentId: 'security', displayAgent: 'Security' })),
+    ...results.cost.findings.map(f => ({ ...f, agentId: 'cost', displayAgent: 'Cost' })),
+    ...results.compliance.findings.map(f => ({ ...f, agentId: 'compliance', displayAgent: 'Compliance' })),
+    ...results.performance.findings.map(f => ({ ...f, agentId: 'performance', displayAgent: 'Performance' }))
+  ] : [];
+
   // Filter findings
-  const filteredFindings = results
-    ? results.security.findings
-        .concat(results.cost.findings)
-        .concat(results.compliance.findings)
-        .concat(results.performance.findings)
-        .filter((f) => {
-          if (filter.agent !== 'all' && f.agent !== filter.agent) return false;
-          if (filter.severity !== 'all' && f.severity !== filter.severity)
-            return false;
-          return true;
-        })
-    : [];
+  const filteredFindings = allFindings.filter((f) => {
+    if (filter.agent !== 'all' && f.agentId !== filter.agent) return false;
+    if (filter.severity !== 'all' && f.severity !== filter.severity) return false;
+    return true;
+  });
 
   // Export findings to CSV
   const downloadCSV = () => {
     if (!results) return;
 
-    // Use all findings and attach agent names explicitly just in case
-    const allFindings = results.security.findings.map(f => ({ ...f, agent: 'Security' }))
-      .concat(results.cost.findings.map(f => ({ ...f, agent: 'Cost' })))
-      .concat(results.compliance.findings.map(f => ({ ...f, agent: 'Compliance' })))
-      .concat(results.performance.findings.map(f => ({ ...f, agent: 'Performance' })));
-
     let csv = 'Agent,Severity,Type,Resource,Issue,Suggestion\n';
 
     allFindings.forEach(f => {
-      const agent = f.agent || '';
+      const agent = f.displayAgent || '';
       const severity = f.severity || '';
       const type = f.type || '';
       const resource = f.resource || '';
@@ -202,6 +202,28 @@ function App() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Copy findings to clipboard
+  const copyToClipboard = () => {
+    if (!results) return;
+
+    let text = "AuditFlow Findings:\n\n";
+
+    allFindings.forEach(f => {
+      text += `[${f.severity}] ${f.type} (${f.displayAgent})\n`;
+      text += `Resource: ${f.resource}\n`;
+      text += `Issue: ${f.issue}\n`;
+      if (f.fix || f.recommendation || f.remediation) {
+        text += `Suggestion: ${f.fix || f.recommendation || f.remediation}\n`;
+      }
+      text += `\n`;
+    });
+
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   return (
@@ -248,12 +270,21 @@ function App() {
             </button>
           </div>
 
-          <textarea
-            value={terraform}
-            onChange={(e) => setTerraform(e.target.value)}
-            placeholder="Paste Terraform code here or upload a file..."
-            className="terraform-input"
-          />
+            <div className="terraform-input-container">
+              <Editor
+                value={terraform}
+                onValueChange={code => setTerraform(code)}
+                highlight={code => Prism.highlight(code, Prism.languages.hcl, 'hcl')}
+                padding={16}
+                placeholder="Paste Terraform code here or upload a file..."
+                className="terraform-editor"
+                style={{
+                  fontFamily: '"Monaco", "Menlo", monospace',
+                  fontSize: '0.9rem',
+                  minHeight: '300px'
+                }}
+              />
+            </div>
         </section>
 
         {/* Error Display */}
@@ -267,6 +298,9 @@ function App() {
               <div className="audit-meta">
                 <span>ID: {auditId?.slice(0, 8)}...</span>
                 <span>Duration: {results.duration_seconds}s</span>
+                <button onClick={copyToClipboard} className="btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.85rem', marginLeft: '0.5rem' }}>
+                  {copied ? '✅ Copied!' : '📋 Copy'}
+                </button>
                 <button onClick={downloadCSV} className="btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.85rem' }}>
                   📥 Export CSV
                 </button>
@@ -351,7 +385,7 @@ function App() {
                     <div className="finding-header">
                       <span className="badge">{finding.severity}</span>
                       <h4>{finding.type}</h4>
-                      <span className="agent-badge">{finding.agent}</span>
+                      <span className="agent-badge">{finding.displayAgent}</span>
                     </div>
                     <p className="finding-issue">{finding.issue}</p>
                     {finding.fix && <p className="finding-fix">💡 Suggestion: {finding.fix}</p>}
