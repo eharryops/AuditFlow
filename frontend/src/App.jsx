@@ -174,7 +174,7 @@ function App() {
   return (
     <div className="app">
       <div className="demo-banner">
-        ⚠️ This portfolio project uses simulated AI responses to prevent API abuse, but the upload and orchestration architecture is fully functional.
+        ⚠️ This portfolio project uses mock AI responses to prevent API abuse, but the upload and orchestration architecture is fully functional.
       </div>
       <header className="header">
         <h1>🔍 AuditFlow</h1>

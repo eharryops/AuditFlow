@@ -47,6 +47,24 @@ Open **http://localhost:5173** and:
 2. Click **Run Audit** to start the 4-agent orchestration
 3. See findings by severity and agent type
 
+### Using Real AI Agents (Production Mode)
+
+By default, the application runs in "Demo Mode" using a \`MockClient\` to prevent unexpected Claude API costs while you are testing or showing off the portfolio. The simulated responses are hardcoded.
+
+To use real AI analysis on actual Terraform code:
+1. Get a Claude API key from [Anthropic's Console](https://console.anthropic.com/).
+2. In \`backend/lambda-handler.js\` (for AWS Lambda) and \`backend/audit-orchestrator/index.js\` (for local dev), change the import from the mock client to the real client:
+   \`\`\`javascript
+   // Change this:
+   import MockClient from '../shared/mock-client.js';
+   const claude = new MockClient();
+   
+   // To this:
+   import ClaudeClient from '../shared/claude-client.js';
+   const claude = new ClaudeClient(process.env.CLAUDE_API_KEY);
+   \`\`\`
+3. Provide your \`CLAUDE_API_KEY\` either as a local environment variable (\`export CLAUDE_API_KEY=...\`) or via Terraform when deploying (\`terraform apply -var="claude_api_key=..."\`).
+
 ## Architecture
 
 See `docs/ARCHITECTURE.md` for detailed explanation of:
