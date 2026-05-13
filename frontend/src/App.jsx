@@ -182,6 +182,14 @@ function App() {
       </header>
 
       <main className="container">
+        {/* Info Section */}
+        <section className="info-section">
+          <h2>What is AuditFlow?</h2>
+          <p>
+            AuditFlow is a multi-agent orchestration platform that statically analyzes your Terraform code. By leveraging specialized AI agents (Security, Cost, Compliance, and Performance) running in parallel, it helps platform engineers identify vulnerabilities, optimize AWS costs, and enforce architectural best practices before infrastructure is ever provisioned.
+          </p>
+        </section>
+
         {/* Input Section */}
         <section className="input-section">
           <div className="controls">
