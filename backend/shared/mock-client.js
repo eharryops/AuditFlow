@@ -44,46 +44,46 @@ class MockClient {
     "severity": "CRITICAL",
     "type": "OVERLY_PERMISSIVE_IAM",
     "cwe": "CWE-639",
-    "resource": "aws_iam_role.lambda_exec",
+    "resource": "aws_iam_role_policy.lambda_policy",
     "issue": "IAM role grants Effect: Allow on Action: * (all actions)",
-    "vulnerable_code": "action = \\"*\\"",
+    "vulnerable_code": "Action = \\"*\\"",
     "fix": "Replace with specific actions",
     "impact": "Attacker can perform any AWS API call"
   },
   {
     "severity": "HIGH",
-    "type": "PUBLIC_S3_BUCKET",
+    "type": "OPEN_SECURITY_GROUP",
     "cwe": "CWE-732",
-    "resource": "aws_s3_bucket.uploads",
-    "issue": "S3 bucket is publicly readable",
-    "vulnerable_code": "acl = \\"public-read-write\\"",
-    "fix": "Set to private: acl = \\"private\\"",
-    "impact": "Data breach risk"
+    "resource": "aws_security_group.web",
+    "issue": "Security group is open to the entire internet (0.0.0.0/0)",
+    "vulnerable_code": "cidr_blocks = [\\"0.0.0.0/0\\"]",
+    "fix": "Restrict ingress to specific IP ranges",
+    "impact": "Resource exposed to public network"
   }
 ]`;
     } else if (systemPrompt.includes("cost optimization")) {
       mockResponse = `[
   {
-    "severity": "CRITICAL",
-    "type": "OVERSIZED_INSTANCE",
-    "resource": "aws_instance.web",
-    "issue": "t3.large instance for low-traffic website",
-    "current_cost": "$50.00",
-    "optimized_cost": "$15.00",
-    "savings": "$35.00",
-    "recommendation": "Downsize to t3.micro for development",
-    "impact": "Significant monthly savings"
+    "severity": "HIGH",
+    "type": "LEGACY_INSTANCE_TYPE",
+    "resource": "aws_db_instance.main",
+    "issue": "Using older generation db.t2.micro instance",
+    "current_cost": "$15.00",
+    "optimized_cost": "$12.00",
+    "savings": "$3.00",
+    "recommendation": "Upgrade to db.t3.micro or db.t4g.micro for better performance at lower cost",
+    "impact": "Save money while improving performance"
   },
   {
-    "severity": "HIGH",
-    "type": "UNUSED_RESOURCE",
-    "resource": "aws_ebs_volume.backup",
-    "issue": "Unattached EBS volume consuming storage",
-    "current_cost": "$10.00",
-    "optimized_cost": "$0.00",
-    "savings": "$10.00",
-    "recommendation": "Delete unused volume",
-    "impact": "Remove unnecessary storage costs"
+    "severity": "MEDIUM",
+    "type": "MISSING_LIFECYCLE_POLICY",
+    "resource": "aws_s3_bucket.data_bucket",
+    "issue": "S3 bucket lacks data lifecycle transition rules",
+    "current_cost": "Variable",
+    "optimized_cost": "Variable",
+    "savings": "Up to 50%",
+    "recommendation": "Move older data to standard-IA or Glacier",
+    "impact": "Reduce long-term storage costs"
   }
 ]`;
     } else if (systemPrompt.includes("compliance auditor")) {
@@ -96,44 +96,44 @@ class MockClient {
     "issue": "RDS database not encrypted at rest",
     "requirement": "SOC 2 requires encryption of sensitive data at rest",
     "current_state": "storage_encrypted = false",
-    "remediation": "Enable encryption_enabled = true",
+    "remediation": "Set storage_encrypted = true",
     "impact": "Audit failure, compliance violation"
   },
   {
     "severity": "HIGH",
-    "type": "NO_AUDIT_LOGGING",
-    "standard": "HIPAA",
-    "resource": "aws_s3_bucket.health_data",
-    "issue": "S3 bucket lacks access logging",
-    "requirement": "HIPAA requires audit trails for PHI access",
-    "current_state": "logging not configured",
-    "remediation": "Enable S3 access logging",
-    "impact": "Cannot audit data access"
+    "type": "MISSING_BACKUPS",
+    "standard": "ISO 27001",
+    "resource": "aws_db_instance.main",
+    "issue": "Database backups are disabled",
+    "requirement": "Business continuity requires automated backups",
+    "current_state": "backup_retention_period = 0",
+    "remediation": "Set backup_retention_period to 7 or higher",
+    "impact": "Data loss risk in disaster scenario"
   }
 ]`;
     } else if (systemPrompt.includes("performance optimization")) {
       mockResponse = `[
   {
-    "severity": "CRITICAL",
-    "type": "NO_CACHING",
-    "resource": "aws_lambda_function.api",
-    "issue": "API Lambda has no caching layer",
-    "current_metric": "p99 latency 2000ms",
-    "optimized_metric": "p99 latency 200ms",
-    "improvement": "90% latency reduction",
-    "recommendation": "Add ElastiCache Redis for hot queries",
-    "impact": "Dramatically improved user experience"
+    "severity": "HIGH",
+    "type": "EOL_RUNTIME",
+    "resource": "aws_lambda_function.processor",
+    "issue": "Using nodejs.16 which is End of Life",
+    "current_metric": "Runtime: nodejs.16",
+    "optimized_metric": "Runtime: nodejs.20.x",
+    "improvement": "Faster execution, newer V8 engine",
+    "recommendation": "Upgrade to nodejs.20.x",
+    "impact": "Security risks and degraded performance"
   },
   {
-    "severity": "HIGH",
+    "severity": "MEDIUM",
     "type": "COLD_START_RISK",
     "resource": "aws_lambda_function.processor",
-    "issue": "Lambda cold starts causing delays",
-    "current_metric": "Cold start time: 5s",
+    "issue": "No provisioned concurrency for data processor",
+    "current_metric": "Cold start time: ~2s",
     "optimized_metric": "Cold start time: 0.1s",
-    "improvement": "50x faster cold starts",
-    "recommendation": "Use Lambda Provisioned Concurrency",
-    "impact": "Eliminated cold start delays"
+    "improvement": "20x faster initial invocations",
+    "recommendation": "Add Provisioned Concurrency if latency is critical",
+    "impact": "Consistent low-latency responses"
   }
 ]`;
     } else {
