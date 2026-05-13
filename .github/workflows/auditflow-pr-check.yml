@@ -1,0 +1,77 @@
+name: AuditFlow Pull Request Check
+
+# This is an example workflow demonstrating how Platform Engineering teams 
+# would integrate the AuditFlow tool directly into their CI/CD pipelines.
+
+on:
+  pull_request:
+    paths:
+      - '**/*.tf'
+
+jobs:
+  infrastructure-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Infrastructure Code
+        uses: actions/checkout@v4
+        
+      - name: Install jq for JSON parsing
+        run: sudo apt-get install -y jq
+
+      - name: Bundle Terraform Files
+        id: bundle
+        run: |
+          # In a real environment, you might only scan the changed files.
+          # Here, we bundle all .tf files in the root directory into a JSON payload.
+          TF_CONTENT=$(cat *.tf 2>/dev/null || echo "")
+          
+          if [ -z "$TF_CONTENT" ]; then
+            echo "No Terraform files found. Skipping audit."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Escape the terraform code so it can be sent via JSON payload
+          ESCAPED_TF=$(echo "$TF_CONTENT" | jq -R -s '.')
+          echo "payload={\"terraform\": $ESCAPED_TF}" > payload.json
+          echo "skip=false" >> $GITHUB_OUTPUT
+
+      - name: Run AuditFlow AI Analysis
+        if: steps.bundle.outputs.skip == 'false'
+        id: audit
+        run: |
+          # Send the code to your deployed AWS API Gateway endpoint
+          # Replace the URL below with your actual API Gateway URL
+          API_URL="https://7af699g5uc.execute-api.us-east-1.amazonaws.com/api/audit"
+          
+          echo "Triggering multi-agent AI audit..."
+          
+          # Hit the API and capture the HTTP status code and response body
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL" \
+            -H "Content-Type: application/json" \
+            -d @payload.json)
+            
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "Error communicating with AuditFlow API: $HTTP_STATUS"
+            exit 1
+          fi
+          
+          # Parse the summary metrics from the JSON response using jq
+          CRITICAL=$(echo "$BODY" | jq -r '.results.summary.by_severity.critical // 0')
+          HIGH=$(echo "$BODY" | jq -r '.results.summary.by_severity.high // 0')
+          
+          echo "Audit completed. Findings summary:"
+          echo "- CRITICAL: $CRITICAL"
+          echo "- HIGH: $HIGH"
+          
+          # Fail the CI pipeline if any CRITICAL vulnerabilities are detected
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "❌ Pipeline failed! AuditFlow detected $CRITICAL CRITICAL infrastructure vulnerabilities."
+            echo "Please review the suggestions before merging this PR."
+            exit 1
+          else
+            echo "✅ Pipeline passed! No critical vulnerabilities detected by AuditFlow."
+          fi

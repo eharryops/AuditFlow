@@ -39,8 +39,10 @@ This Terraform infrastructure deploys AuditFlow to AWS with the following compon
    ```
 
 4. **Claude API Key**:
-   ```bash
-   export CLAUDE_API_KEY="sk-ant-..."
+   Add your API key to a git-ignored variables file:
+   `infrastructure/terraform/environments/dev/terraform.tfvars`
+   ```hcl
+   claude_api_key = "sk-ant-..."
    ```
 
 ---

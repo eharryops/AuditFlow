@@ -63,7 +63,10 @@ To use real AI analysis on actual Terraform code:
    import ClaudeClient from '../shared/claude-client.js';
    const claude = new ClaudeClient(process.env.CLAUDE_API_KEY);
    \`\`\`
-3. Provide your \`CLAUDE_API_KEY\` either as a local environment variable (\`export CLAUDE_API_KEY=...\`) or via Terraform when deploying (\`terraform apply -var="claude_api_key=..."\`).
+3. Add your key securely to Terraform by creating/updating a `terraform.tfvars` file in `infrastructure/terraform/environments/dev/` (this file is git-ignored):
+   ```hcl
+   claude_api_key = "sk-ant-your-real-key-here"
+   ```
 
 ## Architecture
 
