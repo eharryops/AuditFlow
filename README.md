@@ -169,24 +169,11 @@ Building AuditFlow teaches you:
 5. **System Design** — Coordinating async distributed work
 6. **Production AI** — Error handling, monitoring, cost control
 
-## Portfolio Interview Prep
-
-**Q: "How did you optimize costs in AuditFlow?"**
-
-> "I implemented a two-tier approach. First, I parse Terraform before sending to Claude, extracting only relevant sections (reducing tokens by 98%). Second, I use embeddings to store findings in a vector database. When we audit similar infrastructure, we retrieve cached solutions instead of calling Claude again. This cuts repeat audit time from 10 seconds to <100ms and costs from $0.10 to $0.001."
-
-**Q: "Why did you use multiple agents instead of one?"**
-
-> "One agent would be slower (20 seconds sequential) and more expensive (same work across 4 tasks). With parallel agents orchestrated by Ruflo, we get results in 5 seconds and can specialize each agent (security expert, cost optimizer, compliance checker). Trade-off: complexity vs speed. Ruflo handles the coordination automatically."
-
-**Q: "How would you extend this to audit your company's infrastructure?"**
-
-> "I'd wire it into a CI/CD pipeline using GitHub Actions. On every Terraform PR, trigger AuditFlow, block merge if critical issues found. Use memory layer to learn from fixes over time, making subsequent audits faster and smarter."
-
 ## Ready to Use
 
 - ✅ Full-stack implementation (backend, frontend, infrastructure)
 - ✅ Production Terraform IaC with modular design
+- ✅ Automated CI/CD guardrails via GitHub Actions
 - ✅ Complete documentation and deployment guide
 - ✅ Integration tests with mock data
 

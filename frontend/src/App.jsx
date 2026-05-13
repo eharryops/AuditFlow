@@ -108,6 +108,7 @@ function App() {
   const [auditId, setAuditId] = useState(null);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [auditSuccess, setAuditSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState({ agent: 'all', severity: 'all' });
   const [copied, setCopied] = useState(false);
@@ -155,6 +156,9 @@ function App() {
       const data = await res.json();
       setAuditId(data.audit_id);
       setResults(data.results);
+      
+      setAuditSuccess(true);
+      setTimeout(() => setAuditSuccess(false), 3000);
     } catch (err) {
       setError('Audit error: ' + err.message);
     } finally {
@@ -264,9 +268,9 @@ function App() {
             <button
               onClick={runAudit}
               disabled={loading || !terraform.trim()}
-              className="btn-primary"
+              className={`btn-primary ${auditSuccess ? 'btn-success' : ''}`}
             >
-              {loading ? '⏳ Auditing...' : '▶ Run Audit'}
+              {loading ? '⏳ Auditing...' : auditSuccess ? '✅ Audit Complete!' : '▶ Run Audit'}
             </button>
           </div>
 

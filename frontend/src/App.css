@@ -136,6 +136,17 @@ body {
   cursor: not-allowed;
 }
 
+.btn-success {
+  background: #10b981 !important;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+  background: #059669 !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
 .btn-secondary {
   background: var(--border);
   color: var(--text);
