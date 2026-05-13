@@ -96,22 +96,23 @@ See `docs/ARCHITECTURE.md` for detailed explanation of:
 
 ```
 auditflow/
-├── backend/                          # Express.js API
+├── backend/                          # Express.js API & Lambda Logic
 │   ├── agents/                       # 4 agents (Security, Cost, Compliance, Performance)
 │   ├── audit-orchestrator/           # Promise.all() coordinator
 │   ├── shared/                       # Claude client, parsers, embeddings, memory store
-│   ├── package.json
-│   └── npm start                     # Runs on :3000
+│   ├── index.js                      # AWS Lambda entry point wrapper
+│   ├── lambda-handler.js             # AWS Serverless Express handler
+│   └── package.json
 
 ├── frontend/                         # React + Vite
 │   ├── src/
-│   │   ├── App.jsx                  # Main dashboard
+│   │   ├── api/                     # API client utilities
 │   │   ├── components/              # React components
-│   │   ├── hooks/                   # Custom hooks (useAudit, etc)
-│   │   ├── App.css
+│   │   ├── pages/                   # Main page layouts
+│   │   ├── App.jsx                  # Main dashboard logic
+│   │   ├── App.css                  # Custom styling
 │   │   └── main.jsx
-│   ├── package.json
-│   └── npm run dev                  # Runs on :5173
+│   └── package.json
 
 ├── infrastructure/                   # Terraform IaC
 │   ├── terraform/

@@ -44,10 +44,11 @@ node test-mock.mjs          # Mock agents (no API costs)
 ## What You'll See
 
 ### Dashboard Features
-- **Upload/Paste Terraform** — Drag & drop or paste code
+- **Upload/Paste Terraform** — Paste code into the syntax-highlighted editor or upload a file
 - **Load Sample** — Try with pre-built vulnerable config
 - **Run Audit** — Triggers 4-agent orchestrator
 - **Results** — Interactive dashboard with findings
+- **Export & Share** — Download findings as a CSV or copy them instantly to your clipboard
 
 ### Real-time Results
 - **Security findings** (CWE codes, impact)
