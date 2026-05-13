@@ -6,7 +6,6 @@ data "archive_file" "lambda_code" {
   type        = "zip"
   source_dir  = var.source_dir
   output_path = var.zip_output_path
-  excludes    = ["node_modules"]
 }
 
 # =====================

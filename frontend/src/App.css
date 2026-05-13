@@ -31,6 +31,18 @@ body {
   flex-direction: column;
 }
 
+/* Demo Banner */
+.demo-banner {
+  background-color: var(--medium);
+  color: #854d0e;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
 /* Header */
 .header {
   background: linear-gradient(135deg, var(--primary), #1e40af);
@@ -112,7 +124,7 @@ body {
 
 .terraform-input {
   width: 100%;
-  min-height: 200px;
+  min-height: 400px;
   padding: 1rem;
   background: var(--bg);
   border: 1px solid var(--border);
