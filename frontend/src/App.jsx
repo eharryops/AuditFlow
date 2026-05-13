@@ -171,6 +171,39 @@ function App() {
         })
     : [];
 
+  // Export findings to CSV
+  const downloadCSV = () => {
+    if (!results) return;
+
+    // Use all findings and attach agent names explicitly just in case
+    const allFindings = results.security.findings.map(f => ({ ...f, agent: 'Security' }))
+      .concat(results.cost.findings.map(f => ({ ...f, agent: 'Cost' })))
+      .concat(results.compliance.findings.map(f => ({ ...f, agent: 'Compliance' })))
+      .concat(results.performance.findings.map(f => ({ ...f, agent: 'Performance' })));
+
+    let csv = 'Agent,Severity,Type,Resource,Issue,Suggestion\n';
+
+    allFindings.forEach(f => {
+      const agent = f.agent || '';
+      const severity = f.severity || '';
+      const type = f.type || '';
+      const resource = f.resource || '';
+      const issue = (f.issue || '').replace(/"/g, '""');
+      const fix = (f.fix || f.recommendation || f.remediation || '').replace(/"/g, '""');
+      
+      csv += `"${agent}","${severity}","${type}","${resource}","${issue}","${fix}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `auditflow-results-${auditId?.slice(0, 8) || 'export'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="app">
       <div className="demo-banner">
@@ -234,6 +267,9 @@ function App() {
               <div className="audit-meta">
                 <span>ID: {auditId?.slice(0, 8)}...</span>
                 <span>Duration: {results.duration_seconds}s</span>
+                <button onClick={downloadCSV} className="btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.85rem' }}>
+                  📥 Export CSV
+                </button>
               </div>
             </div>
 
@@ -318,9 +354,12 @@ function App() {
                       <span className="agent-badge">{finding.agent}</span>
                     </div>
                     <p className="finding-issue">{finding.issue}</p>
-                    {finding.fix && <p className="finding-fix">✓ {finding.fix}</p>}
+                    {finding.fix && <p className="finding-fix">💡 Suggestion: {finding.fix}</p>}
                     {finding.recommendation && (
-                      <p className="finding-fix">✓ {finding.recommendation}</p>
+                      <p className="finding-fix">💡 Suggestion: {finding.recommendation}</p>
+                    )}
+                    {finding.remediation && (
+                      <p className="finding-fix">💡 Suggestion: {finding.remediation}</p>
                     )}
                     {finding.savings && <p className="finding-savings">Savings: {finding.savings}</p>}
                   </div>
