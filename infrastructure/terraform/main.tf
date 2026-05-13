@@ -51,7 +51,7 @@ module "iam" {
 
   # Lambda execution role permissions
   lambda_policies = {
-    dynamodb = var.dynamodb_table_name
+    dynamodb = module.dynamodb.table_arn
     logs     = "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
   }
 }
@@ -137,27 +137,6 @@ module "http_api" {
   }
 }
 
-# =====================
-# CloudWatch
-# =====================
-
-resource "aws_cloudwatch_log_group" "api" {
-  name              = "/aws/apigateway/${local.prefix}"
-  retention_in_days = var.log_retention_days
-
-  tags = {
-    Name = "${local.prefix}-api-logs"
-  }
-}
-
-resource "aws_cloudwatch_log_group" "lambda" {
-  name              = "/aws/lambda/${module.lambda.function_name}"
-  retention_in_days = var.log_retention_days
-
-  tags = {
-    Name = "${local.prefix}-lambda-logs"
-  }
-}
 
 # =====================
 # CloudWatch Alarms

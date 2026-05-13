@@ -1,6 +1,7 @@
-region      = "us-east-1"
-environment = "dev"
-project     = "auditflow"
+region         = "us-east-1"
+environment    = "dev"
+project        = "auditflow"
+claude_api_key = "sk-mock"
 
 # Lambda
 lambda_memory_size = 512

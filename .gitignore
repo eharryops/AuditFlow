@@ -25,7 +25,8 @@ build/
 tfplan
 *.tfstate
 *.tfstate.backup
-.terraform.tfvars.json
+*.tfvars
+*.tfvars.json
 
 # OS
 .DS_Store

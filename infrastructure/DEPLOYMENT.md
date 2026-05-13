@@ -125,7 +125,7 @@ Apply complete!
 make output ENVIRONMENT=dev
 
 # Returns:
-# api_gateway_url = "https://xxxxx.execute-api.us-east-1.amazonaws.com/dev"
+# api_gateway_url = "https://xxxxx.execute-api.us-east-1.amazonaws.com"
 # cloudfront_domain = "dxxxxx.cloudfront.net"
 # lambda_function_name = "auditflow-dev-auditor"
 # dynamodb_table_name = "auditflow-dev-memory"
@@ -156,24 +156,14 @@ aws cloudfront create-invalidation \
 
 Update `.env` in frontend:
 ```
-VITE_API_URL=https://xxxxx.execute-api.us-east-1.amazonaws.com/dev
+VITE_API_URL=https://xxxxx.execute-api.us-east-1.amazonaws.com
 ```
 
-### 3. Package & Deploy Lambda
+### 3. Deploy Lambda Updates
 
-The Terraform module expects a ZIP file at `backend/.terraform/lambda-build.zip`.
+The Terraform module uses the `archive_file` data source to automatically zip the `backend` directory (excluding `node_modules`). You do not need to manually build the ZIP file.
 
-Build and package:
-```bash
-cd ../../backend
-npm install --production
-zip -r ../.terraform/lambda-build.zip . \
-  -x "node_modules/@anthropic-ai/sdk/docs/*" \
-  -x "tests/*" \
-  -x ".git/*"
-```
-
-Then re-apply Terraform:
+To deploy code changes, simply re-apply Terraform:
 ```bash
 make plan ENVIRONMENT=dev
 make apply ENVIRONMENT=dev
@@ -229,7 +219,7 @@ log_level = "INFO"
 ### 1. Health Check
 
 ```bash
-API_URL="https://xxxxx.execute-api.us-east-1.amazonaws.com/dev"
+API_URL="https://xxxxx.execute-api.us-east-1.amazonaws.com"
 
 curl -X GET $API_URL/health
 # Expected: {"status": "ok"}
@@ -330,11 +320,7 @@ aws cloudwatch describe-alarms --alarm-name-prefix auditflow-dev
 cd backend
 # ... make changes ...
 
-# 2. Rebuild and package
-npm install --production
-zip -r ../.terraform/lambda-build.zip . -x "node_modules/@anthropic-ai/sdk/docs/*"
-
-# 3. Re-apply Terraform (detects code hash change)
+# 2. Re-apply Terraform (automatically packages code and detects changes)
 cd ../infrastructure/terraform
 make plan ENVIRONMENT=dev
 make apply ENVIRONMENT=dev

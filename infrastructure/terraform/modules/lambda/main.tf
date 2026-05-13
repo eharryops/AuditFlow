@@ -6,6 +6,7 @@ data "archive_file" "lambda_code" {
   type        = "zip"
   source_dir  = var.source_dir
   output_path = var.zip_output_path
+  excludes    = ["node_modules"]
 }
 
 # =====================
@@ -62,18 +63,7 @@ resource "aws_lambda_function" "auditor" {
   source_code_hash = data.archive_file.lambda_code.output_base64sha256
 }
 
-# =====================
-# Lambda Permissions
-# =====================
 
-# Permission for API Gateway to invoke Lambda
-resource "aws_lambda_permission" "api_gateway" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.auditor.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = var.api_source_arn != "*" ? "${var.api_source_arn}/*" : null
-}
 
 # =====================
 # Lambda Alias (for versioning)

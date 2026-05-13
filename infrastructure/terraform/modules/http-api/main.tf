@@ -50,7 +50,7 @@ resource "aws_apigatewayv2_route" "audit" {
 
 resource "aws_apigatewayv2_stage" "auditor" {
   api_id      = aws_apigatewayv2_api.auditor.id
-  name        = var.stage_name
+  name        = "$default"
   auto_deploy = true
 
   access_log_settings {
@@ -76,7 +76,7 @@ resource "aws_apigatewayv2_stage" "auditor" {
 # =====================
 
 resource "aws_cloudwatch_log_group" "api" {
-  name              = "/aws/apigateway/auditflow-${var.stage_name}"
+  name              = "/aws/apigateway/auditflow-api"
   retention_in_days = var.log_retention_days
 
   tags = var.tags
