@@ -12,7 +12,7 @@ variable "runtime" {
 variable "handler" {
   type        = string
   description = "Lambda handler"
-  default     = "audit-orchestrator/index.handler"
+  default     = "lambda-handler.handler"
 }
 
 variable "timeout" {
