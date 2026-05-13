@@ -1,91 +1,97 @@
 /**
  * AWS Lambda Handler for AuditFlow
- * Direct handler for HTTP API Gateway v2 events with CORS
+ * Wraps Express app for Lambda
  */
 
-import MockClient from './shared/mock-client.js';
-import AuditOrchestrator from './audit-orchestrator/orchestrator.js';
+import app from './audit-orchestrator/index.js';
 
-const audits = {};
+export const handler = async (event, context) => {
+  // Convert HTTP API Gateway v2 event to Express-like format
+  const method = event.requestContext.http.method;
+  const path = event.rawPath || event.requestContext.http.path;
+  const body = event.isBase64Encoded ? Buffer.from(event.body || '', 'base64').toString('utf-8') : (event.body || '');
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Content-Type': 'application/json',
-};
+  console.log(`[Lambda] ${method} ${path}`);
 
-export const handler = async (event) => {
-  console.log('[Lambda] Event:', JSON.stringify(event, null, 2));
+  // Create a mock request/response for Express
+  const req = {
+    method,
+    path,
+    url: path,
+    headers: event.headers || {},
+    body: body ? JSON.parse(body) : {},
+    query: event.queryStringParameters || {},
+  };
 
-  // Handle preflight OPTIONS
-  if (event.requestContext.http.method === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: '',
-    };
-  }
+  const responses = [];
+  const res = {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+      'Content-Type': 'application/json',
+    },
+    body: '',
+    json: (data) => {
+      res.body = JSON.stringify(data);
+      responses.push({
+        statusCode: res.statusCode,
+        headers: res.headers,
+        body: res.body,
+      });
+    },
+    status: (code) => {
+      res.statusCode = code;
+      return res;
+    },
+    send: (data) => {
+      res.body = typeof data === 'string' ? data : JSON.stringify(data);
+      responses.push({
+        statusCode: res.statusCode,
+        headers: res.headers,
+        body: res.body,
+      });
+    },
+  };
 
-  // Handle POST /api/audit
-  if (event.requestContext.http.method === 'POST' && event.rawPath === '/api/audit') {
-    try {
-      const body = event.isBase64Encoded
-        ? Buffer.from(event.body, 'base64').toString('utf-8')
-        : event.body;
+  // Route to handlers
+  try {
+    if (method === 'OPTIONS') {
+      return { statusCode: 200, headers: res.headers, body: '' };
+    }
 
-      const { terraform } = JSON.parse(body);
-
+    if (method === 'POST' && path === '/api/audit') {
+      const { terraform } = req.body;
       if (!terraform || terraform.trim().length === 0) {
-        return {
-          statusCode: 400,
-          headers: corsHeaders,
-          body: JSON.stringify({ error: 'Missing terraform content' }),
-        };
-      }
+        res.status(400).json({ error: 'Missing terraform content' });
+      } else {
+        const MockClient = (await import('./shared/mock-client.js')).default;
+        const AuditOrchestrator = (await import('./audit-orchestrator/orchestrator.js')).default;
 
-      console.log(`[Lambda] Audit request: ${terraform.length} bytes`);
+        const claude = new MockClient();
+        const orchestrator = new AuditOrchestrator(claude);
+        const result = await orchestrator.audit(terraform);
 
-      const claude = new MockClient();
-      const orchestrator = new AuditOrchestrator(claude);
-      const result = await orchestrator.audit(terraform);
-
-      audits[result.audit_id] = {
-        ...result,
-        timestamp: new Date().toISOString(),
-      };
-
-      return {
-        statusCode: 200,
-        headers: corsHeaders,
-        body: JSON.stringify({
+        res.json({
           success: true,
           audit_id: result.audit_id,
           results: result,
-        }),
-      };
-    } catch (error) {
-      console.error('[Lambda] Error:', error.message);
-      return {
-        statusCode: 500,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: error.message }),
-      };
+        });
+      }
+    } else if (method === 'GET' && path === '/api/health') {
+      res.json({ status: 'ok', version: '0.1.0' });
+    } else {
+      res.status(404).json({ error: 'Not found' });
     }
-  }
 
-  // Handle GET /api/health
-  if (event.requestContext.http.method === 'GET' && event.rawPath === '/api/health') {
+    return responses[0] || { statusCode: 500, headers: res.headers, body: '' };
+  } catch (error) {
+    console.error('[Lambda] Error:', error);
     return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({ status: 'ok', version: '0.1.0' }),
+      statusCode: 500,
+      headers: res.headers,
+      body: JSON.stringify({ error: error.message }),
     };
   }
-
-  return {
-    statusCode: 404,
-    headers: corsHeaders,
-    body: JSON.stringify({ error: 'Not found' }),
-  };
 };
